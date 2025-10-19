@@ -1,0 +1,185 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================
+# INTONTATION GAME WITH GUI
+# =========================
+
+class IntonationGameGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title(" The Melody of Meaning: Intonation Game ")
+        self.root.geometry("700x500")
+        self.root.configure(bg="#f4f6f9")
+        self.score = 0
+        self.level_index = 0
+        self.levels = self.load_levels()
+        
+        # Initialize frames
+        self.start_frame = tk.Frame(self.root, bg="#f4f6f9")
+        self.game_frame = tk.Frame(self.root, bg="#f4f6f9")
+        self.end_frame = tk.Frame(self.root, bg="#f4f6f9")
+
+        self.setup_start_screen()
+
+    # Load all 14 intonation levels
+    def load_levels(self):
+        return [
+            {"rule": "Rule 1: Statements, Requests, Commands, and Wh-Questions (2–3–1 Rising-Falling)",
+             "description": "Used for firm statements and wh-questions. The voice rises and then falls.",
+             "question": "What intonation fits 'Where are you going?'",
+             "options": ["Rising", "Falling", "Rising-Falling"],
+             "answer": "Rising-Falling"},
+            {"rule": "Rule 2: Yes-No Questions (2–3 Rising)",
+             "description": "Used for questions expecting Yes or No. The voice rises at the end.",
+             "question": "What intonation fits 'Are you ready?'",
+             "options": ["Rising", "Falling", "Flat"],
+             "answer": "Rising"},
+            {"rule": "Rule 3: Echo Questions (2–3 Rising)",
+             "description": "Used for surprise or clarification.",
+             "question": "What intonation fits 'You did WHAT?'",
+             "options": ["Rising", "Falling", "Rising-Falling"],
+             "answer": "Rising"},
+            {"rule": "Rule 4: Contrasts & Comparisons (3–2–4–1)",
+             "description": "Highlights contrast. One word is pronounced extra high.",
+             "question": "What pattern fits 'She’s OLDER than I am'?",
+             "options": ["Contrastive", "Falling", "Flat"],
+             "answer": "Contrastive"},
+            {"rule": "Rule 5: Implicit Contrasts (2–4 or 2–3)",
+             "description": "Shows hidden comparison (e.g. 'It’s not bad — it’s great!').",
+             "question": "What intonation pattern shows implied contrast?",
+             "options": ["Rising", "Contrastive", "Falling"],
+             "answer": "Contrastive"},
+            {"rule": "Rule 6: Nonfinal (Closely Connected) (2–3–2)",
+             "description": "Shows continuation. Common in 'if' or 'when' clauses.",
+             "question": "What intonation fits 'If you come early, we’ll go together'?",
+             "options": ["Nonfinal", "Falling", "Rising-Falling"],
+             "answer": "Nonfinal"},
+            {"rule": "Rule 7: Nonfinal (Suspense) (2–3 Rising)",
+             "description": "Used to create suspense or expectation.",
+             "question": "What intonation fits 'When I got home...'?",
+             "options": ["Rising", "Falling", "Flat"],
+             "answer": "Rising"},
+            {"rule": "Rule 8: Series with 'and' (2–3 / 2–3 / 2–3–1)",
+             "description": "Items in a list rise, final one falls.",
+             "question": "How does tone move before the last item in a list?",
+             "options": ["Rising", "Falling", "Flat"],
+             "answer": "Rising"},
+            {"rule": "Rule 9: Alternatives with 'or' (2–3 / 2–3–1)",
+             "description": "Used for offering options; rises then falls.",
+             "question": "What fits 'Would you like tea or coffee?'",
+             "options": ["Rising-Falling", "Rising", "Flat"],
+             "answer": "Rising-Falling"},
+            {"rule": "Rule 10: Alternatives Requiring Choice (Contrastive 4–2–3–1)",
+             "description": "Emphasizes the alternative being selected.",
+             "question": "Which intonation shows strong contrast in choice?",
+             "options": ["Contrastive", "Falling", "Rising"],
+             "answer": "Contrastive"},
+            {"rule": "Rule 11: Double Yes-No Questions (2–3 / 2–3)",
+             "description": "Two yes/no questions joined by 'or'—both rising.",
+             "question": "What fits 'Did you visit New York or Boston?'",
+             "options": ["Rising", "Falling", "Rising-Falling"],
+             "answer": "Rising"},
+            {"rule": "Rule 12: Direct Address (2–3 Rising)",
+             "description": "Used for politeness or friendliness in addressing someone.",
+             "question": "What intonation fits 'Good morning, Mr. Smith'?",
+             "options": ["Rising", "Falling", "Flat"],
+             "answer": "Rising"},
+            {"rule": "Rule 13: Tag Questions (Rising = Real, Falling = Agreement)",
+             "description": "Rising tag = question; Falling tag = agreement expected.",
+             "question": "If you expect agreement, what pattern do you use?",
+             "options": ["Rising", "Falling", "Flat"],
+             "answer": "Falling"},
+            {"rule": "Rule 14: Focus (Variable Rising Position)",
+             "description": "The pitch rises on the emphasized word.",
+             "question": "What changes when you move the high pitch?",
+             "options": ["Focus", "Contrastive", "Flat"],
+             "answer": "Focus"}
+        ]
+
+    # =========================
+    # SCREENS
+    # =========================
+    def setup_start_screen(self):
+        self.clear_frames()
+        self.start_frame.pack(expand=True)
+
+        tk.Label(self.start_frame, text="🎵 The Melody of Meaning 🎵", font=("Arial", 24, "bold"), bg="#f4f6f9").pack(pady=40)
+        tk.Label(self.start_frame, text="Learn English Intonation Patterns through 14 interactive levels!", 
+                 font=("Arial", 14), bg="#f4f6f9").pack(pady=20)
+        tk.Button(self.start_frame, text="Start Game", font=("Arial", 16, "bold"), bg="#0078D7", fg="white",
+                  command=self.start_game).pack(pady=30)
+
+    def start_game(self):
+        self.level_index = 0
+        self.score = 0
+        self.show_level()
+
+    def show_level(self):
+        self.clear_frames()
+        self.game_frame.pack(expand=True, fill="both")
+
+        level = self.levels[self.level_index]
+
+        tk.Label(self.game_frame, text=level["rule"], font=("Arial", 16, "bold"), bg="#f4f6f9", wraplength=650).pack(pady=10)
+        tk.Label(self.game_frame, text=level["description"], font=("Arial", 12), bg="#f4f6f9", wraplength=600).pack(pady=5)
+        tk.Label(self.game_frame, text=f"Question: {level['question']}", font=("Arial", 13, "italic"), bg="#f4f6f9", wraplength=600).pack(pady=10)
+
+        for option in level["options"]:
+            tk.Button(self.game_frame, text=option, width=20, font=("Arial", 12), bg="#e3e3e3",
+                      command=lambda opt=option: self.check_answer(opt)).pack(pady=5)
+
+        self.score_label = tk.Label(self.game_frame, text=f"Score: {self.score}", font=("Arial", 12, "bold"), bg="#f4f6f9")
+        self.score_label.pack(side="bottom", pady=20)
+
+    def check_answer(self, selected_option):
+        correct_answer = self.levels[self.level_index]["answer"]
+
+        if selected_option.lower() == correct_answer.lower():
+            self.score += 10
+            messagebox.showinfo("✅ Correct!", f"Good job! '{correct_answer}' is the right answer.")
+        else:
+            desc = self.levels[self.level_index]["description"]
+            messagebox.showwarning("❌ Incorrect", f"Correct answer: '{correct_answer}'.\n\nExplanation: {desc}")
+
+        self.next_level()
+
+    def next_level(self):
+        self.level_index += 1
+        if self.level_index < len(self.levels):
+            self.show_level()
+        else:
+            self.show_end_screen()
+
+    def show_end_screen(self):
+        self.clear_frames()
+        self.end_frame.pack(expand=True)
+
+        tk.Label(self.end_frame, text="🏆 Game Complete! 🏆", font=("Arial", 22, "bold"), bg="#f4f6f9").pack(pady=40)
+        tk.Label(self.end_frame, text=f"Your final score: {self.score} / 140", font=("Arial", 16), bg="#f4f6f9").pack(pady=20)
+
+        if self.score > 120:
+            result = "🌟 Intonation Master!"
+        elif self.score > 80:
+            result = "🎶 Great job! You’re developing strong rhythm and pitch control!"
+        else:
+            result = "🎧 Keep practicing — your ear will tune with time!"
+
+        tk.Label(self.end_frame, text=result, font=("Arial", 14, "italic"), bg="#f4f6f9").pack(pady=10)
+        tk.Button(self.end_frame, text="Play Again", font=("Arial", 14, "bold"), bg="#0078D7", fg="white",
+                  command=self.setup_start_screen).pack(pady=20)
+        tk.Button(self.end_frame, text="Exit", font=("Arial", 14, "bold"), bg="red", fg="white",
+                  command=self.root.quit).pack(pady=10)
+
+    def clear_frames(self):
+        for frame in [self.start_frame, self.game_frame, self.end_frame]:
+            for widget in frame.winfo_children():
+                widget.destroy()
+            frame.pack_forget()
+
+
+# Run the GUI
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = IntonationGameGUI(root)
+    root.mainloop()
