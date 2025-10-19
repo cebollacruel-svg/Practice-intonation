@@ -1,185 +1,427 @@
-import tkinter as tk
-from tkinter import messagebox
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Intonation Analyst Training</title>
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f0f2f5; 
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    #game-container {
+      width: 100%;
+      max-width: 800px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    #header {
+      background: #4a5a94;
+      color: white;
+      padding: 20px 30px;
+    }
+    #header h2 { margin: 0; }
+    #header p { margin: 5px 0 0 0; opacity: 0.9; }
+    
+    #progress-bar-container {
+      width: 100%;
+      background: #e0e0e0;
+      height: 10px;
+    }
+    #progress-bar {
+      width: 0%;
+      height: 10px;
+      background: #76c7c0;
+      transition: width 0.3s ease;
+    }
 
-# =========================
-# INTONTATION GAME WITH GUI
-# =========================
+    #scenario-box {
+      padding: 30px;
+      border-bottom: 1px solid #eee;
+    }
+    #scenario-box h3 { margin-top: 0; color: #4a5a94; }
+    #scenario-box p { font-size: 1.1em; line-height: 1.6; }
+    #sentence {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #000;
+      font-family: "Courier New", Courier, monospace;
+      padding: 20px;
+      background: #f9f9f9;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 20px;
+    }
 
-class IntonationGameGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title(" The Melody of Meaning: Intonation Game ")
-        self.root.geometry("700x500")
-        self.root.configure(bg="#f4f6f9")
-        self.score = 0
-        self.level_index = 0
-        self.levels = self.load_levels()
-        
-        # Initialize frames
-        self.start_frame = tk.Frame(self.root, bg="#f4f6f9")
-        self.game_frame = tk.Frame(self.root, bg="#f4f6f9")
-        self.end_frame = tk.Frame(self.root, bg="#f4f6f9")
+    #options-container {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .option {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fcfcfc;
+    }
+    .option:hover {
+      border-color: #4a5a94;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+    .option.selected {
+      border-color: #4a5a94;
+      background: #e6e9f5;
+    }
+    .option-formula {
+      font-family: "Courier New", Courier, monospace;
+      font-weight: bold;
+      font-size: 1.4em;
+      color: #d9534f;
+    }
+    .option-desc {
+      font-size: 0.9em;
+      margin-top: 10px;
+      color: #555;
+    }
 
-        self.setup_start_screen()
+    #feedback-container {
+      padding: 0 30px 30px 30px;
+    }
+    #feedback-box {
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 1.05em;
+      line-height: 1.6;
+      display: none;
+    }
+    #feedback-box.correct {
+      background: #dff0d8;
+      border: 1px solid #c8e5bc;
+      color: #3c763d;
+      display: block;
+    }
+    #feedback-box.incorrect {
+      background: #f2dede;
+      border: 1px solid #ebcccc;
+      color: #a94442;
+      display: block;
+    }
+    #feedback-box strong { font-size: 1.1em; }
+    #feedback-box p { margin: 10px 0 0 0; }
 
-    # Load all 14 intonation levels
-    def load_levels(self):
-        return [
-            {"rule": "Rule 1: Statements, Requests, Commands, and Wh-Questions (2–3–1 Rising-Falling)",
-             "description": "Used for firm statements and wh-questions. The voice rises and then falls.",
-             "question": "What intonation fits 'Where are you going?'",
-             "options": ["Rising", "Falling", "Rising-Falling"],
-             "answer": "Rising-Falling"},
-            {"rule": "Rule 2: Yes-No Questions (2–3 Rising)",
-             "description": "Used for questions expecting Yes or No. The voice rises at the end.",
-             "question": "What intonation fits 'Are you ready?'",
-             "options": ["Rising", "Falling", "Flat"],
-             "answer": "Rising"},
-            {"rule": "Rule 3: Echo Questions (2–3 Rising)",
-             "description": "Used for surprise or clarification.",
-             "question": "What intonation fits 'You did WHAT?'",
-             "options": ["Rising", "Falling", "Rising-Falling"],
-             "answer": "Rising"},
-            {"rule": "Rule 4: Contrasts & Comparisons (3–2–4–1)",
-             "description": "Highlights contrast. One word is pronounced extra high.",
-             "question": "What pattern fits 'She’s OLDER than I am'?",
-             "options": ["Contrastive", "Falling", "Flat"],
-             "answer": "Contrastive"},
-            {"rule": "Rule 5: Implicit Contrasts (2–4 or 2–3)",
-             "description": "Shows hidden comparison (e.g. 'It’s not bad — it’s great!').",
-             "question": "What intonation pattern shows implied contrast?",
-             "options": ["Rising", "Contrastive", "Falling"],
-             "answer": "Contrastive"},
-            {"rule": "Rule 6: Nonfinal (Closely Connected) (2–3–2)",
-             "description": "Shows continuation. Common in 'if' or 'when' clauses.",
-             "question": "What intonation fits 'If you come early, we’ll go together'?",
-             "options": ["Nonfinal", "Falling", "Rising-Falling"],
-             "answer": "Nonfinal"},
-            {"rule": "Rule 7: Nonfinal (Suspense) (2–3 Rising)",
-             "description": "Used to create suspense or expectation.",
-             "question": "What intonation fits 'When I got home...'?",
-             "options": ["Rising", "Falling", "Flat"],
-             "answer": "Rising"},
-            {"rule": "Rule 8: Series with 'and' (2–3 / 2–3 / 2–3–1)",
-             "description": "Items in a list rise, final one falls.",
-             "question": "How does tone move before the last item in a list?",
-             "options": ["Rising", "Falling", "Flat"],
-             "answer": "Rising"},
-            {"rule": "Rule 9: Alternatives with 'or' (2–3 / 2–3–1)",
-             "description": "Used for offering options; rises then falls.",
-             "question": "What fits 'Would you like tea or coffee?'",
-             "options": ["Rising-Falling", "Rising", "Flat"],
-             "answer": "Rising-Falling"},
-            {"rule": "Rule 10: Alternatives Requiring Choice (Contrastive 4–2–3–1)",
-             "description": "Emphasizes the alternative being selected.",
-             "question": "Which intonation shows strong contrast in choice?",
-             "options": ["Contrastive", "Falling", "Rising"],
-             "answer": "Contrastive"},
-            {"rule": "Rule 11: Double Yes-No Questions (2–3 / 2–3)",
-             "description": "Two yes/no questions joined by 'or'—both rising.",
-             "question": "What fits 'Did you visit New York or Boston?'",
-             "options": ["Rising", "Falling", "Rising-Falling"],
-             "answer": "Rising"},
-            {"rule": "Rule 12: Direct Address (2–3 Rising)",
-             "description": "Used for politeness or friendliness in addressing someone.",
-             "question": "What intonation fits 'Good morning, Mr. Smith'?",
-             "options": ["Rising", "Falling", "Flat"],
-             "answer": "Rising"},
-            {"rule": "Rule 13: Tag Questions (Rising = Real, Falling = Agreement)",
-             "description": "Rising tag = question; Falling tag = agreement expected.",
-             "question": "If you expect agreement, what pattern do you use?",
-             "options": ["Rising", "Falling", "Flat"],
-             "answer": "Falling"},
-            {"rule": "Rule 14: Focus (Variable Rising Position)",
-             "description": "The pitch rises on the emphasized word.",
-             "question": "What changes when you move the high pitch?",
-             "options": ["Focus", "Contrastive", "Flat"],
-             "answer": "Focus"}
-        ]
+    #controls {
+      padding: 0 30px 30px 30px;
+      text-align: right;
+    }
+    #check-btn, #next-btn {
+      padding: 12px 25px;
+      font-size: 1em;
+      font-weight: bold;
+      color: white;
+      background: #5cb85c;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #check-btn:hover { background: #4cae4c; }
+    #check-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #next-btn {
+      background: #4a5a94;
+      display: none;
+    }
+    #next-btn:hover { background: #3a487a; }
 
-    # =========================
-    # SCREENS
-    # =========================
-    def setup_start_screen(self):
-        self.clear_frames()
-        self.start_frame.pack(expand=True)
+  </style>
+</head>
+<body>
 
-        tk.Label(self.start_frame, text="🎵 The Melody of Meaning 🎵", font=("Arial", 24, "bold"), bg="#f4f6f9").pack(pady=40)
-        tk.Label(self.start_frame, text="Learn English Intonation Patterns through 14 interactive levels!", 
-                 font=("Arial", 14), bg="#f4f6f9").pack(pady=20)
-        tk.Button(self.start_frame, text="Start Game", font=("Arial", 16, "bold"), bg="#0078D7", fg="white",
-                  command=self.start_game).pack(pady=30)
+<div id="game-container">
+  <div id="header">
+    <h2>🩺 Intonation Analyst Training</h2>
+    <p>Match the intonation pattern to the speaker's meaning.</p>
+  </div>
+  <div id="progress-bar-container">
+    <div id="progress-bar"></div>
+  </div>
+  
+  <div id="scenario-box">
+    <h3 id="scenario-title">Scenario 1 of 14:</h3>
+    <p id="scenario-text">A speaker is making a simple statement of fact. Which intonation pattern should they use?</p>
+    <div id="sentence">"It's raining."</div>
+  </div>
 
-    def start_game(self):
-        self.level_index = 0
-        self.score = 0
-        self.show_level()
+  <div id="options-container">
+    </div>
 
-    def show_level(self):
-        self.clear_frames()
-        self.game_frame.pack(expand=True, fill="both")
+  <div id="feedback-container">
+    <div id="feedback-box">
+      </div>
+  </div>
 
-        level = self.levels[self.level_index]
+  <div id="controls">
+    <button id="check-btn" disabled>Check Answer</button>
+    <button id="next-btn">Next Level</button>
+  </div>
 
-        tk.Label(self.game_frame, text=level["rule"], font=("Arial", 16, "bold"), bg="#f4f6f9", wraplength=650).pack(pady=10)
-        tk.Label(self.game_frame, text=level["description"], font=("Arial", 12), bg="#f4f6f9", wraplength=600).pack(pady=5)
-        tk.Label(self.game_frame, text=f"Question: {level['question']}", font=("Arial", 13, "italic"), bg="#f4f6f9", wraplength=600).pack(pady=10)
+</div>
 
-        for option in level["options"]:
-            tk.Button(self.game_frame, text=option, width=20, font=("Arial", 12), bg="#e3e3e3",
-                      command=lambda opt=option: self.check_answer(opt)).pack(pady=5)
+<script>
+  // --- The Game Data ---
+  // Based on the "Inventory of Intonation Patterns Having Grammatical Meanings" 
+  const gameData = [
+    {
+      level: 1,
+      rule: "Rule 1: Statements",
+      scenario: "You are making a simple, final statement of fact. You expect no reply.",
+      sentence: "It's raining.",
+      options: [
+        { formula: "2-3-1", desc: "Voice rises to high, then falls to low.", correct: true },
+        { formula: "2-3", desc: "Voice rises to high and stays there.", correct: false }
+      ],
+      explanation: "<strong>Correct! The 2-3-1 (rising-falling) pattern is the default for simple statements, commands, and wh-questions.</strong>  It signals completeness. The 2-3 (rising) pattern you didn't choose would make it sound like an incomplete thought or a question[cite: 29]."
+    },
+    {
+      level: 2,
+      rule: "Rule 2: Yes/No Questions",
+      scenario: "You are asking a genuine 'yes-no' question. You want to know if she answered.",
+      sentence: "Did she answer?",
+      options: [
+        { formula: "2-3-1", desc: "Voice rises, then falls to low.", correct: false },
+        { formula: "2-3", desc: "Voice rises and stays high.", correct: true }
+      ],
+      explanation: "<strong>Correct! The 2-3 (rising) pattern is used for 'yes-no' questions.</strong> [cite: 7, 297] This rising pitch signals incompleteness, inviting the listener to provide the missing 'yes' or 'no'[cite: 29, 30]. Using the 2-3-1 (falling) pattern would make it sound like a command or a wh-question."
+    },
+    {
+      level: 3,
+      rule: "Rule 12 vs. 13: Tag Questions",
+      scenario: "You see your friend shivering. You're not really asking, just confirming what you both know. You expect them to agree.",
+      sentence: "It's cold, / isn't it?",
+      options: [
+        { formula: "2-3-1", desc: "Voice FALLS on 'isn't it?'", correct: true },
+        { formula: "2-3", desc: "Voice RISES on 'isn't it?'", correct: false }
+      ],
+      explanation: "<strong>Exactly! This is Rule 13: Tag Questions (Agreement Expected).</strong> The falling 2-3-1 pattern on the tag turns the sentence into a statement indicating you are confident the hearer will agree[cite: 150, 302]. If you had used the 2-3 (rising) pattern, it would have been Rule 12: a *real* question, meaning you were genuinely unsure if it was cold[cite: 153, 298]."
+    },
+    {
+      level: 4,
+      rule: "Rule 9 vs. 10: Alternative Questions",
+      scenario: "You are at a cafe. You need the customer to CHOOSE ONE option, not answer 'yes'.",
+      sentence: "Do you want coffee, / or tea?",
+      options: [
+        { formula: "2-3 / 2-3", desc: "Rise on 'coffee', and RISE again on 'tea'.", correct: false },
+        { formula: "2-4 / 2-3-1", desc: "Extra-high rise on 'coffee', then FALL on 'tea'.", correct: true }
+      ],
+      explanation: "<strong>Correct! This is Rule 9: Alternative Questions (Requiring a Choice).</strong> To force a choice, one alternative gets an extra-high note (pitch 4) and the final one uses a falling 2-3-1 pattern[cite: 122, 298]. If you had used the 2-3 / 2-3 (rise/rise) pattern (Rule 10), you would be asking a 'double yes-no question'[cite: 125, 300], and the customer might just say 'Yes,' which isn't helpful!"
+    },
+    {
+      level: 5,
+      rule: "Rule 14: Focus",
+      scenario: "Someone wrongly assumes *John* bought the house. You want to correct them, stressing that *THEY* (some other people) bought it.",
+      sentence: "THEY bought the house.",
+      options: [
+        { formula: "2-4-1 (on 'house')", desc: "The main high note is on 'house'.", correct: false },
+        { formula: "2-4-1 (on 'THEY')", desc: "The main high note is on 'THEY'.", correct: true }
+      ],
+      explanation: "<strong>Perfect! This is Rule 14: Focus.</strong> In English, you can move the high note (the 'focus') to *any* element to signal its importance or to contrast it[cite: 254, 255, 302]. By putting the high note on 'THEY' [cite: 310], you are 'contradicting an idea... merely implied' (Rule 5) [cite: 265, 297]—in this case, the idea that *John* bought it."
+    },
+    {
+      level: 6,
+      rule: "Rule 3: Echo Questions",
+      scenario: "Your boss just said, 'What time is it?' You are shocked and can't believe they asked such a basic question. You repeat their question in disbelief.",
+      sentence: "What time is it?!",
+      options: [
+        { formula: "2-3-1", desc: "Standard falling pattern for a wh-question.", correct: false },
+        { formula: "2-3", desc: "A rising pattern, even on a wh-question.", correct: true }
+      ],
+      explanation: "<strong>That's it! This is Rule 3: Echo Questions.</strong> A wh-question (which normally has a 2-3-1 falling pattern) becomes an 'echo question' when pronounced with a 2-3 rising intonation[cite: 39, 41, 297]. It means 'Is that *really* what you just said?' or 'Please repeat that'[cite: 42, 43]."
+    },
+    {
+      level: 7,
+      rule: "Rule 7: Series with 'and'",
+      scenario: "You are listing items you bought at the store. You pause after each item in the list.",
+      sentence: "I bought bread, / milk, / and cheese.",
+      options: [
+        { formula: "2-3 / 2-3 / 2-3-1", desc: "Rise on 'bread', rise on 'milk', fall on 'cheese'.", correct: true },
+        { formula: "2-3-1 / 2-3-1 / 2-3-1", desc: "Fall on 'bread', fall on 'milk', fall on 'cheese'.", correct: false }
+      ],
+      explanation: "<strong>Correct! This is Rule 7: Series with 'and'.</strong> The pattern is rising intonation on all members of the series except the last one, which has a rising-falling (2-3-1) intonation to signal the end of the list[cite: 109, 110, 298]. If you used a falling 2-3-1 pattern on each item, it would sound like three separate, choppy, and unconnected statements."
+    },
+    {
+      level: 8,
+      rule: "Rule 11: Direct Address",
+      scenario: "You are trying to politely get your teacher's attention at the *end* of a sentence.",
+      sentence: "I have a question, / Mr. Jones.",
+      options: [
+        { formula: "1-2", desc: "Start low and rise to normal on 'Mr. Jones'.", correct: true },
+        { formula: "2-3-1", desc: "Start high and fall to low on 'Mr. Jones'.", correct: false }
+      ],
+      explanation: "<strong>Excellent! This is Rule 11: Direct Address.</strong> The 'safest pattern' for politeness in direct address is a low-to-normal rising intonation (1-2)[cite: 133, 134, 298]. If your voice *doesn't* rise, you might sound irritated or angry[cite: 138]. If it rises too high, it can sound unnatural or even strange (like the 'cannibal' example in the book!)[cite: 140, 141]."
+    },
+    {
+      level: 9,
+      rule: "Rule 4: Contrasts",
+      scenario: "You are correcting someone. They said *your* Arabic is good, but you want to emphasize that *HIS* Arabic is the good one, in contrast to yours.",
+      sentence: "HIS Arabic is better than mine.",
+      options: [
+        { formula: "3-2-4-1", desc: "An extra-high note on 'HIS' and another on 'mine'.", correct: true },
+        { formula: "2-3-1", desc: "A standard high note on 'mine' (the last word).", correct: false }
+      ],
+      explanation: "<strong>Nailed it! This is Rule 4: Contrasts and Comparisons.</strong> When contrasting two ideas, special attention is called to both. This is often done by using different high notes, one high (3) and one *extra-high* (4)[cite: 73, 74, 297]. A standard 2-3-1 pattern would just be a normal statement, losing the crucial contrasting emphasis."
+    },
+    {
+      level: 10,
+      rule: "Rule 6: Nonfinal Intonation",
+      scenario: "You are pausing in the middle of a sentence, but you want to show a *very close connection* to the next part. You are creating suspense.",
+      sentence: "If you want me to, / I'll call her.",
+      options: [
+        { formula: "2-3", desc: "End the first part with a *rising* pattern.", correct: true },
+        { formula: "2-3-1", desc: "End the first part with a *falling* pattern.", correct: false }
+      ],
+      explanation: "<strong>Correct! This is Rule 6 (Nonfinal suspense).</strong> The book describes three ways to handle a nonfinal pause[cite: 86]. Using a 2-3 (rising) pattern creates suspense and shows the *closest* connection to the next thought group[cite: 98, 102, 104, 298]. Using a 2-3-1 (falling) pattern would create a 'distant connection,' making the two parts sound almost like separate sentences[cite: 87, 88, 103, 298]."
+    }
+    // Note: The 14 rules are condensed into these 10 representative, high-contrast levels.
+    // e.g., Rule 5 (Implicit Contrast) is covered in Rule 14 (Focus).
+    // Rule 8 (Alternatives) is covered in the contrast with Rule 9.
+  ];
 
-        self.score_label = tk.Label(self.game_frame, text=f"Score: {self.score}", font=("Arial", 12, "bold"), bg="#f4f6f9")
-        self.score_label.pack(side="bottom", pady=20)
+  // --- Game Logic ---
+  let currentLevel = 0;
+  let selectedOption = null;
+  let answered = false;
+  const totalLevels = 10; // We have 10 challenges
 
-    def check_answer(self, selected_option):
-        correct_answer = self.levels[self.level_index]["answer"]
+  const progressBar = document.getElementById('progress-bar');
+  const scenarioTitle = document.getElementById('scenario-title');
+  const scenarioText = document.getElementById('scenario-text');
+  const sentenceEl = document.getElementById('sentence');
+  const optionsContainer = document.getElementById('options-container');
+  const feedbackBox = document.getElementById('feedback-box');
+  const checkBtn = document.getElementById('check-btn');
+  const nextBtn = document.getElementById('next-btn');
 
-        if selected_option.lower() == correct_answer.lower():
-            self.score += 10
-            messagebox.showinfo("✅ Correct!", f"Good job! '{correct_answer}' is the right answer.")
-        else:
-            desc = self.levels[self.level_index]["description"]
-            messagebox.showwarning("❌ Incorrect", f"Correct answer: '{correct_answer}'.\n\nExplanation: {desc}")
+  function loadLevel() {
+    // Reset state
+    answered = false;
+    selectedOption = null;
+    feedbackBox.style.display = 'none';
+    feedbackBox.className = '';
+    checkBtn.disabled = true;
+    checkBtn.style.display = 'inline-block';
+    nextBtn.style.display = 'none';
+    
+    // Shuffle the game data after the first playthrough
+    if (currentLevel === 0 && gameData.length > totalLevels) {
+       shuffleArray(gameData);
+    }
 
-        self.next_level()
+    const data = gameData[currentLevel];
+    
+    // Update progress bar
+    progressBar.style.width = `${((currentLevel) / totalLevels) * 100}%`;
 
-    def next_level(self):
-        self.level_index += 1
-        if self.level_index < len(self.levels):
-            self.show_level()
-        else:
-            self.show_end_screen()
+    // Populate elements
+    scenarioTitle.textContent = `Level ${currentLevel + 1} of ${totalLevels}: ${data.rule}`;
+    scenarioText.textContent = data.scenario;
+    sentenceEl.textContent = data.sentence;
+    
+    // Clear and create options
+    optionsContainer.innerHTML = '';
+    data.options.forEach((opt, index) => {
+      const optEl = document.createElement('div');
+      optEl.classList.add('option');
+      optEl.dataset.index = index;
+      optEl.innerHTML = `
+        <div class="option-formula">${opt.formula}</div>
+        <div class="option-desc">${opt.desc}</div>
+      `;
+      optEl.addEventListener('click', () => handleOptionClick(optEl, index));
+      optionsContainer.appendChild(optEl);
+    });
+  }
 
-    def show_end_screen(self):
-        self.clear_frames()
-        self.end_frame.pack(expand=True)
+  function handleOptionClick(clickedElement, index) {
+    if (answered) return;
 
-        tk.Label(self.end_frame, text="🏆 Game Complete! 🏆", font=("Arial", 22, "bold"), bg="#f4f6f9").pack(pady=40)
-        tk.Label(self.end_frame, text=f"Your final score: {self.score} / 140", font=("Arial", 16), bg="#f4f6f9").pack(pady=20)
+    // Remove 'selected' from all
+    document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+    
+    // Add 'selected' to clicked
+    clickedElement.classList.add('selected');
+    
+    selectedOption = gameData[currentLevel].options[index];
+    checkBtn.disabled = false;
+  }
 
-        if self.score > 120:
-            result = "🌟 Intonation Master!"
-        elif self.score > 80:
-            result = "🎶 Great job! You’re developing strong rhythm and pitch control!"
-        else:
-            result = "🎧 Keep practicing — your ear will tune with time!"
+  function checkAnswer() {
+    if (answered || !selectedOption) return;
+    
+    answered = true;
+    checkBtn.style.display = 'none';
+    nextBtn.style.display = 'inline-block';
 
-        tk.Label(self.end_frame, text=result, font=("Arial", 14, "italic"), bg="#f4f6f9").pack(pady=10)
-        tk.Button(self.end_frame, text="Play Again", font=("Arial", 14, "bold"), bg="#0078D7", fg="white",
-                  command=self.setup_start_screen).pack(pady=20)
-        tk.Button(self.end_frame, text="Exit", font=("Arial", 14, "bold"), bg="red", fg="white",
-                  command=self.root.quit).pack(pady=10)
+    const data = gameData[currentLevel];
+    
+    if (selectedOption.correct) {
+      feedbackBox.innerHTML = `<strong>✅ Correct!</strong> ${data.explanation}`;
+      feedbackBox.className = 'correct';
+    } else {
+      // Find the correct answer's details to explain
+      const correctOpt = data.options.find(opt => opt.correct);
+      feedbackBox.innerHTML = `<strong>❌ Not quite.</strong> You chose the <strong>${selectedOption.formula}</strong> pattern, which would be incorrect here. 
+                               <p>${data.explanation}</p>`;
+      feedbackBox.className = 'incorrect';
+    }
+    feedbackBox.style.display = 'block';
 
-    def clear_frames(self):
-        for frame in [self.start_frame, self.game_frame, self.end_frame]:
-            for widget in frame.winfo_children():
-                widget.destroy()
-            frame.pack_forget()
+    if (currentLevel === totalLevels - 1) {
+        nextBtn.textContent = 'Finish & Restart';
+    }
+  }
 
+  function nextLevel() {
+    currentLevel++;
+    if (currentLevel >= totalLevels) {
+      currentLevel = 0; // Restart
+      progressBar.style.width = '100%';
+      setTimeout(() => {
+          progressBar.style.transition = 'none';
+          progressBar.style.width = '0%';
+          setTimeout(() => progressBar.style.transition = 'width 0.3s ease', 50);
+      }, 500);
+    }
+    loadLevel();
+  }
+  
+  /* Fisher-Yates Shuffle */
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
 
-# Run the GUI
-if __name__ == "__main__":
-    root = tk.Tk()
-    game = IntonationGameGUI(root)
-    root.mainloop()
+  // --- Start Game ---
+  checkBtn.addEventListener('click', checkAnswer);
+  nextBtn.addEventListener('click', nextLevel);
+  loadLevel();
+
+</script>
+
+</body>
+</html>
